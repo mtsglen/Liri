@@ -3,27 +3,31 @@ require("dotenv").config();
 
 //initalize npm packages
 var Twitter = require('twitter');
-var Request = require ('request');
+var request = require ('request');
 var Spotify = require('node-spotify-api');
 
 //initialize other pages to import
-var keys = require("./keys.js") 
+var keys = require("./keys.js");
+// console.log(keys);
 
+//takes arguments from terminal and assigns them to a var
 var firstInput = process.argv[2];
 var secondInput = process.argv[3];
 
-var spotify = new Spotify({
-    id: keys.spotify.SPOTIFY_ID,
-    secret: keys.spotify.SPOTIFY_SECRET
-  });
-
+//Twitter and Sp[otify key calls
 var client = new Twitter({
   consumer_key: keys.twitter.consumer_key,
   consumer_secret: keys.twitter.consumer_secret,
   access_token_key: keys.twitter.access_token_key,
   access_token_secret: keys.twitter.access_token_secret
 });
+
+var spotify = new Spotify({
+    id: keys.spotify.id,
+    secret: keys.spotify.secret
+  });
  
+//Twitter return
 var params = {screen_name: 'bootcampaccount'};
 
 function twitterFeed(){
@@ -44,14 +48,16 @@ function twitterFeed(){
     })
 }
 
-twitterFeed();
- 
-function spotifySong() {
-    spotify.search({ type: 'track', query: 'All the Small Things', limit: 10 }, function(err, data) {
-        var artist = data.track.artists;
-        var song = data.track.name;
-        var link = data.track.link;
-        var album = data.track.album;
+// twitterFeed();
+
+//Spotify return
+function spotifySong(input) {
+    spotify.search({ type: 'track', query: input, limit: 10 }, function(err, data) {
+
+        var artist = data.tracks.items[0].artists[0].name;
+        var song = data.tracks.items[0].name;
+        var link = data.tracks.items[0].preview_url;
+        var album = data.tracks.items[0].album.name;
 
         if (err) {
           return console.log('Error occurred: ' + err);
@@ -65,4 +71,39 @@ function spotifySong() {
         }
 })
 };
-spotifySong();
+// spotifySong();
+
+
+//OMDB return
+function movies() {
+    request.get('http://www.omdbapi.com/?apikey=trilogy&t=Zootopia', function (error, response) {
+        var title = response.body.Title
+//    * Year the movie came out.
+//    * IMDB Rating of the movie.
+//    * Rotten Tomatoes Rating of the movie.
+//    * Country where the movie was produced.
+//    * Language of the movie.
+//    * Plot of the movie.
+//    * Actors in the movie.
+
+            // console.log(response);
+            // console.log(body);
+            
+            
+
+    
+    //     if (err) {
+    //         console.log('error:', error); // Print the error if one occurred
+    //     } else {
+            console.log(`
+              ${title}
+              `);
+    // }
+});
+}
+
+movies();
+  
+  
+//   console.log('body:', body); // Print the HTML for the Google homepage.
+// });
