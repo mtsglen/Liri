@@ -8,6 +8,7 @@ var Spotify = require('node-spotify-api');
 
 //initialize other pages to import
 var keys = require("./keys.js");
+var fs = require('fs');
 // console.log(keys);
 
 //takes arguments from terminal and assigns them to a var
@@ -32,27 +33,25 @@ var params = {screen_name: 'bootcampaccount'};
 
 function twitterFeed(){
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
-        if (!error) {
-          for (i = 0; i < tweets.length ; i++) {
-              var feed = tweets[i].text;
-              var created = tweets[i].created_at;
-
-              console.log(`
-              ${feed}
-              ${created}`);
-          } 
+        if (error) {
+            console.log(error);
         } 
         else {
-            console.log(error);
+            for (i = 0; i < tweets.length ; i++) {
+                var feed = tweets[i].text;
+                var created = tweets[i].created_at;
+  
+                console.log(`
+                ${feed}
+                ${created}`);
+            } 
         }
-    })
-}
-
-// twitterFeed();
+    });
+};
 
 //Spotify return
-function spotifySong(input) {
-    spotify.search({ type: 'track', query: input, limit: 10 }, function(err, data) {
+function spotifySong(song) {
+    spotify.search({ type: 'track', query: song, limit: 10 }, function(err, data) {
 
         var artist = data.tracks.items[0].artists[0].name;
         var song = data.tracks.items[0].name;
@@ -69,41 +68,75 @@ function spotifySong(input) {
               ${album}
               `);
         }
-})
+    });
 };
-// spotifySong();
-
 
 //OMDB return
-function movies() {
-    request.get('http://www.omdbapi.com/?apikey=trilogy&t=Zootopia', function (error, response) {
-        var title = response.body.Title
-//    * Year the movie came out.
-//    * IMDB Rating of the movie.
-//    * Rotten Tomatoes Rating of the movie.
-//    * Country where the movie was produced.
-//    * Language of the movie.
-//    * Plot of the movie.
-//    * Actors in the movie.
-
-            // console.log(response);
-            // console.log(body);
+function movies(movie) {
+    request.get('http://www.omdbapi.com/?apikey=trilogy&t=' + movie, function (error, response) {
+        
+        var resp = JSON.parse(response.body);
+        var title = resp.Title;
+        var year = resp.Year;
+        var imdbRating = resp.imdbRating;
+        var tomRating = resp.Ratings[1].Value;
+        var lang = resp.Language;
+        var plot = resp.Plot;
+        var actors = resp.Actors;
             
-            
-
-    
-    //     if (err) {
-    //         console.log('error:', error); // Print the error if one occurred
-    //     } else {
+        if (error) {
+            console.log('error:', error); // Print the error if one occurred
+        } else {
             console.log(`
-              ${title}
+              ${"Title: " + title}
+              ${"Release Year: " + year}
+              ${"IMDB Rating: " + imdbRating}
+              ${"Rotten Tomatoes Rating: " + tomRating}
+              ${"Language: " + lang}
+              ${"Plot: " + plot}
+              ${"Actors: " + actors}
               `);
-    // }
-});
+        }
+    })
 }
 
-movies();
-  
-  
-//   console.log('body:', body); // Print the HTML for the Google homepage.
-// });
+
+//Do what it says function
+function doIt(){
+    fs.readFile("./random.txt", "utf8", (err, data)=> {
+        if (err) {
+            throw err
+        }
+        else if (data.includes("spotify")) {
+            var content = data.split(",");
+            spotifySong(content[1]);
+        }
+        
+    })
+};   
+
+//Logic for commands
+// console.log(firstInput);
+// console.log(secondInput);
+
+if (firstInput === "my-tweets") {
+    twitterFeed();
+} 
+else if ((firstInput === "spotify-this-song") && (secondInput === undefined)) {
+    spotifySong("Ace of Base: The Sign");
+}
+else if (firstInput === "spotify-this-song") {
+    spotifySong(secondInput);
+}
+else if (firstInput === "movie-this" && secondInput === undefined) {
+    console.log(`
+        ${"If you haven't watched \"Mr. Nobody,\" then you should:"}
+        ${"http://www.imdb.com/title/tt0485947/"}
+        ${"It's on Netflix!"} `)
+}
+else if (firstInput === "movie-this") {
+    movies(secondInput);
+}
+else if (firstInput === "do-what-it-says") {
+    doIt();
+}
